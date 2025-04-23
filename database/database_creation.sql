@@ -1,3 +1,7 @@
+CREATE DATABASE workout;
+
+USE workout;
+
 CREATE TABLE users(
     userID INT AUTO_INCREMENT,
     username varchar(255) NOT NULL UNIQUE,
@@ -16,7 +20,7 @@ CREATE TABLE workouts(
     FOREIGN KEY (userID) REFERENCES users(userID)
 );
 
-CREATE TABLE exercise_type(
+CREATE TABLE exercise_types(
     exercise_type_id INT AUTO_INCREMENT,
     exercise_type varchar(255),
     PRIMARY KEY (exercise_type_id)
@@ -27,9 +31,9 @@ CREATE TABLE exercises(
     exercise_type_id INT NOT NULL,
     exercise_name varchar(255) NOT NULL,
     details text NULL,
-    default_exercise boolean,
+    userID INT,
     PRIMARY KEY (exercise_id),
-    FOREIGN KEY (exercise_type_id) REFERENCES exercise_type(exercise_type_id)
+    FOREIGN KEY (exercise_type_id) REFERENCES exercise_types(exercise_type_id)
 );
 
 
