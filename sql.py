@@ -1,4 +1,5 @@
 import mysql.connector
+import tabulate
 
 mydb = mysql.connector.connect(
         host = "localhost",
@@ -15,52 +16,44 @@ def get_user_password(username):
     if len(users) == 0:
         return False
     else:
-        return(users[0]["passwd"])
+        return (users[0]["userID"]), (users[0]["passwd"])
 
-def get_exercise(username):
-    cursor.execute(f"SELECT userID FROM users WHERE username = '{username}'")
-    userID = cursor.fetchall()[0]["userID"]
-    cursor.execute(f"SELECT exercise_name FROM exercises WHERE userID IN ('1','{userID}')")
+def get_exercise(userID, exerciseID=''):
+    if userID == 1:
+        cursor.execute(f"SELECT * FROM exercises WHERE exercise_id LIKE '{exerciseID}%'")
+    else:
+        cursor.execute(f"SELECT * FROM exercises WHERE userID IN ('1','{userID}') AND exercise_id LIKE '{exerciseID}%'")
     exercise_list = []
-    for i in cursor.fetchall():
-        exercise_list.append(i.get("exercise_name"))
-    return exercise_list
+    values = cursor.fetchall()
+    return tabulate.tabulate(values, headers = "keys", tablefmt="github")
 
-def create_exercise(username, exercise_name, exercise_type):
-    cursor.execute(f"SELECT userID FROM users WHERE username = '{username}'")
-    userID = cursor.fetchall()[0]["userID"]
-
-    cursor.execute(f"SELECT exercise_type_id FROM exercise_types WHERE exercise_type = '{exercise_type}'")
+def create_exercise(userID, exercise_name, exercise_type_ID):
+    cursor.execute(f"SELECT * FROM exercise_types WHERE exercise_type_id = '{exercise_type_ID}'")
     exercise_type_IDs = cursor.fetchall()
 
     if len(exercise_type_IDs) == 0:
         print("Invalid exercise type name")
         return False
-    else:
-        exercise_type_ID = exercise_type_IDs[0]["exercise_type_id"]
 
     cursor.execute(f"INSERT INTO exercises(exercise_name, exercise_type_id, userID) VALUES ('{exercise_name}', '{exercise_type_ID}', '{userID}')")
     mydb.commit()
-    print("record inserted")
+    cursor.execute(f"SELECT * FROM exercises WHERE userID IN ('1','{userID}') AND exercise_name = '{exercise_name}'")
+    values = cursor.fetchall()
+    return tabulate.tabulate(values, headers = "keys", tablefmt="github")
 
-def delete_exercise(username, exercise_name):
-    cursor.execute(f"SELECT userID FROM users WHERE username = '{username}'")
-    userID = cursor.fetchall()[0]["userID"]
-
-    cursor.execute(f"SELECT exercise_id FROM exercises WHERE exercise_name = '{exercise_name}' AND userID = '{userID}'")
+def delete_exercise(userID, exercise_ID):
+    cursor.execute(f"SELECT * FROM exercises WHERE exercise_ID = '{exercise_ID}' AND userID = '{userID}'")
     exercise_IDs = cursor.fetchall()
 
     if len(exercise_IDs) == 0:
         print("Exercise does not exist / you cannot delete this exercise.")
         return False
-    else:
-        exercise_ID = exercise_IDs[0]["exercise_id"]
 
     cursor.execute(f"DELETE FROM exercises WHERE exercise_id = '{exercise_ID}'")
     mydb.commit()
     print("record removed")
+    return "record removed"
 
+# print(create_exercise(2, "STest", 1))
 
-# create_exercise("suman", "sTest", "Weights")
-
-delete_exercise("suman", "sTest")
+print(get_exercise(1))
