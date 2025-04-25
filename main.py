@@ -4,6 +4,7 @@ import jwt
 import sql
 
 app = Flask(__name__)
+app.json.sort_keys = False
 app.config['SECRET_KEY'] = "753e55a1cf494a9780836ab6a8b04cbd"
 
 def authenticate(token):
@@ -17,19 +18,21 @@ def authenticate(token):
         print(f'Unable to decode the token, error: {error}')
         return False
 
-## NEED A FUNCTION TO CREATE EXERCISE DATA
-## NEED AUTHENTICATION
-
 ## WORKOUT MANAGEMENT : CREATE, UPDATE, DELETE, SCHEDULE (specific date and time), LIST and GENERATE REPORTS
 
 @app.route("/")
 def home():
     return jsonify({"message": "logged in"})
 
+@app.route('/register', methods=["POST"])
+def register():
+    data = request.get_json()
+    return sql.create_user(data["username"], data["password"], data["email"])
+
 @app.route('/login', methods=["POST"])
 def login():
     data = request.get_json()
-    userID, password = sql.get_user_password(data["username"])
+    userID, password = sql.get_user_details(data["username"])
     if data["password"] == password:
         session['login'] = True
         now = datetime.now(timezone.utc)
